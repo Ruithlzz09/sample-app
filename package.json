@@ -1,0 +1,31 @@
+{
+  "name": "sample-app",
+  "version": "0.0.1",
+  "description": "It is simple express REST Api Project with testing support to test functionality",
+  "main": "src/app.js",
+  "engines": {
+    "node": ">=20.10.0"
+  },
+  "scripts": {
+    "build": "rm -rf node_modules && pnpm i --frozen-lockfile",
+    "dev": "NODE_ENV=development nodemon src/app.js",
+    "start": "NODE_ENV=production node src/app.js",
+    "test": "mocha  tests/*.test.js  --timeout 250000 --exit --bail"
+  },
+  "keywords": [
+    "express"
+  ],
+  "author": "INTP-42",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "chai": "^4.4.1",
+    "chai-http": "^4.4.0",
+    "cross-env": "^7.0.3",
+    "mocha": "^10.2.0",
+    "nodemon": "^3.0.2"
+  }
+}
