@@ -55,7 +55,7 @@ async function saveToRedis(client, key, data, expiryInSeconds) {
  * @param {string} type - Optional. Type of Redis client (default is 'client').
  * @throws {Error} Throws an error if there is a failure in connecting to or saving to Redis.
  */
-const setKeyValue = async (key, payload, expiryInSeconds, type = "client") => {
+const saveKey = async (key, payload, expiryInSeconds, type = "client") => {
   try {
     const client = await getRedisClientByType(type, false);
     try {
@@ -94,7 +94,7 @@ const setKeyValue = async (key, payload, expiryInSeconds, type = "client") => {
  * @returns {Promise<string|object>} A Promise that resolves to the retrieved value.
  * @throws {Error} Throws an error if there is a failure in connecting to or retrieving from Redis.
  */
-const getKeyValue = async (key, type = "client") => {
+const getKey = async (key, type = "client") => {
   try {
     const client = await getRedisClientByType(type);
     try {
@@ -128,7 +128,7 @@ const getKeyValue = async (key, type = "client") => {
  * @param {string} type - Optional. Type of Redis client (default is 'client').
  * @throws {Error} Throws an error if there is a failure in connecting to or removing from Redis.
  */
-const removeKey = async (key, type = "client") => {
+const deleteKey = async (key, type = "client") => {
   try {
     const client = await getRedisClientByType(type);
     try {
@@ -150,9 +150,70 @@ const removeKey = async (key, type = "client") => {
   }
 };
 
+/**
+ * Resets the cache by removing keys from Redis that match the specified pattern.
+ *
+ * @param {string} [keyPattern='*'] - Optional. The pattern of keys to be removed from Redis. Default is '*'.
+ * @param {string} [type='client'] - Optional. Type of Redis client. Default is 'client'.
+ * @throws {Error} Throws an error if there is a failure in connecting to or removing keys from Redis.
+ *
+ * @example
+ * // Reset the cache by removing all keys that start with someTxt
+ * await resetCache('someTxt*');
+ *
+ * @example
+ * // Reset the cache by removing all keys from the default pattern '*'
+ * await resetCache();
+ */
+const resetCache = async (keyPattern = "*", type = "client") => {
+  try {
+    const client = await getRedisClientByType(type);
+    try {
+      const keysToDelete = await new Promise((resolve, reject) => {
+        // Get all keys that match the specified pattern
+        client.keys(keyPattern, (err, keys) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(keys);
+          }
+        });
+      });
+
+      // Delete all keys that match the specified pattern
+      if (keysToDelete.length > 0) {
+        await new Promise((resolve, reject) => {
+          client.del(keysToDelete, (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+      }
+
+      logs("info", "redis [resetCache]", "Cache reset successful", true);
+    } catch (err) {
+      const errorMessage = err.stack || err;
+      logs("error", "redis [resetCache]", `Error ${errorMessage}`);
+    } finally {
+      client.quit();
+    }
+  } catch (error) {
+    logs(
+      "error",
+      "redis [resetCache]",
+      `Failed to connect to Redis, Error ${error.stack || error}`
+    );
+    throw error;
+  }
+};
+
 // Export the functions for setting, getting, and removing keys in Redis
 module.exports = {
-  setKeyValue,
-  getKeyValue,
-  removeKey,
+  saveKey,
+  getKey,
+  deleteKey,
+  resetCache
 };
