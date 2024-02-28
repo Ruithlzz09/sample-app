@@ -10,7 +10,8 @@
     "build": "rm -rf node_modules && pnpm i --frozen-lockfile",
     "dev": "NODE_ENV=development nodemon src/app.js",
     "start": "NODE_ENV=production node src/app.js",
-    "test": "mocha  tests/*.test.js  --timeout 250000 --exit --bail"
+    "test": "mocha  tests/*.test.js  --timeout 250000 --exit --bail",
+    "sample-app": "node src/index.js"
   },
   "keywords": [
     "express"
